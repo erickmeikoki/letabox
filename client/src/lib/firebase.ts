@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOGks1FE2e4qlx0nibv-CPGuu676LfRFs",
@@ -13,16 +13,20 @@ const firebaseConfig = {
   measurementId: "G-MXSWNS321B"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
+
+// Only initialize analytics if it's supported
+export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);
 
 const provider = new GoogleAuthProvider();
 
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, provider);
+    console.log("Successfully signed in:", result.user.email);
     return result.user;
   } catch (error) {
     console.error("Error signing in with Google: ", error);
@@ -33,6 +37,7 @@ export const signInWithGoogle = async () => {
 export const signOutUser = async () => {
   try {
     await signOut(auth);
+    console.log("Successfully signed out");
   } catch (error) {
     console.error("Error signing out: ", error);
     throw error;

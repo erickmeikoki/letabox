@@ -2,16 +2,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { signInWithGoogle } from "@/lib/firebase";
 import { useLocation } from "wouter";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export function Login() {
   const [, setLocation] = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleLogin = async () => {
+    setIsLoading(true);
     try {
       await signInWithGoogle();
+      toast({
+        title: "Success",
+        description: "Successfully signed in!",
+      });
       setLocation("/");
     } catch (error) {
       console.error("Login failed:", error);
+      toast({
+        title: "Login Failed",
+        description: "Could not sign in with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -29,8 +45,9 @@ export function Login() {
             className="w-full"
             size="lg"
             onClick={handleLogin}
+            disabled={isLoading}
           >
-            Sign in with Google
+            {isLoading ? "Signing in..." : "Sign in with Google"}
           </Button>
         </CardContent>
       </Card>
