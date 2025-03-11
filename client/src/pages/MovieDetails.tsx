@@ -5,7 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Star, Plus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { addToWatchlist } from "@/lib/firestore";
+import { addReview } from "@/lib/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { ReviewForm } from "@/components/ReviewForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function MovieDetails() {
   const { id } = useParams();
@@ -40,6 +49,17 @@ export function MovieDetails() {
       });
     },
   });
+
+  const handleAddReview = async (rating: number, content: string) => {
+    if (!currentUser || !movie) return;
+
+    await addReview({
+      userId: currentUser.uid,
+      movieId: movie.id.toString(),
+      rating,
+      content,
+    });
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -101,7 +121,33 @@ export function MovieDetails() {
                 <Plus className="w-4 h-4 mr-2" />
                 {addToWatchlistMutation.isPending ? 'Adding...' : 'Add to Watchlist'}
               </Button>
-              <Button variant="outline">Write a Review</Button>
+
+              {currentUser ? (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">Write a Review</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Review {movie.title}</DialogTitle>
+                    </DialogHeader>
+                    <ReviewForm movieId={movie.id.toString()} onSubmit={handleAddReview} />
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Sign in required",
+                      description: "Please sign in to review movies",
+                      variant: "destructive",
+                    });
+                  }}
+                >
+                  Write a Review
+                </Button>
+              )}
             </div>
           </div>
         </div>
