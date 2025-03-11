@@ -4,18 +4,20 @@ const BASE_URL = "https://api.themoviedb.org/3";
 export interface Movie {
   id: number;
   title: string;
-  overview: string;
   poster_path: string;
   backdrop_path: string;
-  vote_average: number;
+  overview: string;
   release_date: string;
+  vote_average: number;
 }
 
 export async function searchMovies(query: string): Promise<Movie[]> {
   const response = await fetch(
     `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
   );
-  if (!response.ok) throw new Error("Failed to search movies");
+  if (!response.ok) {
+    throw new Error("Failed to search movies");
+  }
   const data = await response.json();
   return data.results;
 }
@@ -24,15 +26,19 @@ export async function getPopularMovies(): Promise<Movie[]> {
   const response = await fetch(
     `${BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}`
   );
-  if (!response.ok) throw new Error("Failed to fetch popular movies");
+  if (!response.ok) {
+    throw new Error("Failed to fetch popular movies");
+  }
   const data = await response.json();
   return data.results;
 }
 
-export async function getMovieDetails(id: number): Promise<Movie> {
+export async function getMovieDetails(id: string): Promise<Movie> {
   const response = await fetch(
     `${BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
   );
-  if (!response.ok) throw new Error("Failed to fetch movie details");
-  return response.json();
+  if (!response.ok) {
+    throw new Error("Failed to fetch movie details");
+  }
+  return await response.json();
 }
