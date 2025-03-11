@@ -8,6 +8,7 @@ import { HomePage } from "@/pages/HomePage";
 import { MovieDetails } from "@/pages/MovieDetails";
 import { Profile } from "@/pages/Profile";
 import { Login } from "@/pages/Login";
+import { WatchList } from "@/pages/WatchList";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/movie/:id" component={MovieDetails} />
       <Route path="/profile" component={Profile} />
       <Route path="/login" component={Login} />
+      <Route path="/watchlist" component={WatchList} />
       <Route component={NotFound} />
     </Switch>
   );
