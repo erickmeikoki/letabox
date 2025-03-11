@@ -1,15 +1,44 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { getMovieDetails } from "@/lib/tmdb";
 import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Star, Plus } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { addToWatchlist } from "@/lib/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 export function MovieDetails() {
   const { id } = useParams();
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
 
   const { data: movie, isLoading } = useQuery({
     queryKey: ["movie", id],
     queryFn: () => getMovieDetails(id!)
+  });
+
+  const addToWatchlistMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser || !movie) return;
+      await addToWatchlist({
+        userId: currentUser.uid,
+        movieId: movie.id.toString()
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Movie added to your watchlist",
+      });
+    },
+    onError: (error) => {
+      console.error("Error adding to watchlist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add movie to watchlist",
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading) {
@@ -19,6 +48,18 @@ export function MovieDetails() {
   if (!movie) {
     return <div>Movie not found</div>;
   }
+
+  const handleAddToWatchlist = () => {
+    if (!currentUser) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add movies to your watchlist",
+        variant: "destructive",
+      });
+      return;
+    }
+    addToWatchlistMutation.mutate();
+  };
 
   return (
     <div className="relative">
@@ -41,7 +82,7 @@ export function MovieDetails() {
 
           <div className="text-white">
             <h1 className="text-4xl font-bold mb-4">{movie.title}</h1>
-            
+
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center">
                 <Star className="w-5 h-5 text-yellow-400 mr-1" />
@@ -53,9 +94,12 @@ export function MovieDetails() {
             <p className="text-lg mb-6">{movie.overview}</p>
 
             <div className="flex gap-4">
-              <Button>
+              <Button 
+                onClick={handleAddToWatchlist}
+                disabled={addToWatchlistMutation.isPending}
+              >
                 <Plus className="w-4 h-4 mr-2" />
-                Add to Watchlist
+                {addToWatchlistMutation.isPending ? 'Adding...' : 'Add to Watchlist'}
               </Button>
               <Button variant="outline">Write a Review</Button>
             </div>
